@@ -1,0 +1,65 @@
+---
+- name: Install Jenkins
+  hosts: jenkins
+  gather_facts: false
+  become: true
+  tasks:
+    - name: install wget
+      yum:
+        name: wget
+        state: present
+
+    - name: install openjdk
+      yum:
+        name: java-1.8*
+        state: present
+
+    - name: download jenkins.repo
+      get_url:
+        url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
+        dest: /etc/yum.repos.d/jenkins.repo
+
+    - name: import jenkins key
+      rpm_key:
+        state: present
+        key: https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+
+    - name: install jenkins
+      yum:
+        name: jenkins
+        state: present
+
+    - name: start jenkins
+      systemd:
+        name: jenkins
+        state: started
+
+    - name: enable jenkins
+      systemd:
+        name: jenkins
+        enabled: true
+
+    - name: sleep for 30 seconds and continue with play
+      wait_for: timeout=30
+      delegate_to: localhost
+
+    - name: init password jenkin
+      shell: cat /var/lib/jenkins/secrets/initialAdminPassword
+      changed_when: false
+      register: result
+
+    - name: print init password jenkins
+      debug:
+        var: result.stdout
+
+    - name: Descargar Maven
+      get_url: url=http://mirrors.estointernet.in/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz dest=/opt/apache-maven-3.6.3-bin.tar.gz
+
+    - name: Descomprimir Maven
+      ansible.builtin.shell:
+        chdir: /opt
+        cmd: tar xzf apache-maven-3.6.3-bin.tar.gz
+        cmd: mv apache-maven-3.6.3 maven
+        cmd:  echo "M2_HOME=/opt/maven" >> ~/.bashrc
+        cmd:  echo "PATH=\${M2_HOME}/bin:\${PATH}" >> ~/.bashrc
+

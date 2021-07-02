@@ -39,7 +39,7 @@
         name: jenkins
         enabled: true
 
-    - name: sleep for 30 seconds and continue with play
+    - name: sleep por 30 segundos para continuar
       wait_for: timeout=30
       delegate_to: localhost
 
